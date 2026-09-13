@@ -1,0 +1,9 @@
+{
+  "public_url": "https://search.example.com",
+  "default_search": "https://www.google.com/search?q={query}",
+  "bangs": {
+    "g": "https://www.google.com/search?q={query}",
+    "gh": "https://github.com/search?q={query}",
+    "w": "https://de.wikipedia.org/w/index.php?search={query}"
+  }
+}
