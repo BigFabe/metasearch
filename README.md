@@ -10,7 +10,7 @@ Repository: [BigFabe/metasearch](https://github.com/BigFabe/metasearch).
 cp config.example.json config.json
 # public_url und Suchziele in config.json bearbeiten
 chmod 644 config.json
-docker compose up -d --build
+docker compose up -d
 curl -i 'http://127.0.0.1:8080/search?q=%21gh+linux'
 ```
 
@@ -24,7 +24,10 @@ Nach Änderungen die Konfiguration neu einbinden und laden:
 docker compose up -d --force-recreate
 ```
 
-Das erneute Erstellen berücksichtigt auch Editoren, die Dateien per Umbenennung ersetzen. Zum Stoppen: `docker compose down`.
+`compose.yaml` verwendet das veröffentlichte Image
+`ghcr.io/bigfabe/metasearch:latest` und lädt beim Start die aktuelle Version dieses
+Tags. Ein lokaler Build ist nicht erforderlich. Das erneute Erstellen berücksichtigt
+auch Editoren, die Dateien per Umbenennung ersetzen. Zum Stoppen: `docker compose down`.
 
 ## Release-Images
 
@@ -42,8 +45,9 @@ Das Versions-Tag entspricht dem Release-Tag. Reguläre Releases aktualisieren au
 Der Workflow verwendet das automatisch bereitgestellte `GITHUB_TOKEN`; zusätzliche
 Registry-Secrets sind nicht erforderlich. Actions sind auf Commit-SHAs festgelegt.
 
-Für ein fertiges Release-Image in `compose.yaml` die Zeile `build: .` durch
-`image: ghcr.io/bigfabe/metasearch:v0.1.0` ersetzen. Danach:
+Für einen reproduzierbar festgelegten Stand kann in `compose.yaml` statt `latest`
+ein Release-Tag wie `ghcr.io/bigfabe/metasearch:v0.1.0` eingetragen werden. Updates
+des festgelegten Tags erfolgen bewusst durch Anpassen dieser Zeile. Zum Aktualisieren:
 
 ```sh
 docker compose pull
