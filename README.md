@@ -11,12 +11,15 @@ cp config.example.json config.json
 # public_url und Suchziele in config.json bearbeiten
 chmod 644 config.json
 docker compose up -d
-curl -i 'http://127.0.0.1:8080/search?q=%21gh+linux'
+docker exec metasearch /metasearch -h
 ```
 
 `public_url` ist die öffentliche HTTPS-Adresse ohne Pfad, etwa `https://search.example.com`. Für einen lokalen Test ist `http://localhost:8080` möglich. Die Konfiguration enthält keine Geheimnisse und muss für Container-UID 65532 lesbar sein. Sie wird schreibgeschützt eingebunden und nicht ins Image kopiert.
 
-Compose veröffentlicht ausschließlich `127.0.0.1:8080`. Ein Reverse Proxy auf dem Host übernimmt HTTPS. Bei einem Reverse Proxy in einem Container muss dessen Netzwerkzugriff entsprechend eingerichtet werden; `127.0.0.1` bezeichnet dort den Proxy-Container.
+Compose verbindet den Container mit dem vorhandenen externen Docker-Netzwerk `lsio`.
+Der Dienst lauscht darin als `metasearch:8558`; es wird kein Port am Host
+veröffentlicht. Nginx Proxy Manager übernimmt HTTPS und verwendet als Forward Hostname
+`metasearch` sowie als Forward Port `8558`.
 
 Nach Änderungen die Konfiguration neu einbinden und laden:
 
@@ -144,8 +147,8 @@ Tests prüfen Suchziele, Unicode/URL-Kodierung, ungültige Konfiguration, Status
 Container-Smoke-Test nach dem Start:
 
 ```sh
-curl --fail 'http://127.0.0.1:8080/healthz'
-curl -sS -D - -o /dev/null 'http://127.0.0.1:8080/search?q=%21gh+linux'
+docker run --rm --network lsio docker.io/curlimages/curl:latest --fail 'http://metasearch:8558/healthz'
+docker run --rm --network lsio docker.io/curlimages/curl:latest -sS -D - -o /dev/null 'http://metasearch:8558/search?q=%21gh+linux'
 docker compose logs
 ```
 

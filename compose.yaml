@@ -1,10 +1,12 @@
 services:
   metasearch:
     image: ghcr.io/bigfabe/metasearch:latest
+    container_name: metasearch
     pull_policy: always
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8080:8080"
+    command: ["-config", "/config/config.json", "-listen", ":8558"]
+    expose:
+      - "8558"
     volumes:
       - type: bind
         source: ./config.json
@@ -19,3 +21,9 @@ services:
     ulimits:
       core: 0
     stop_grace_period: 10s
+    networks:
+      - lsio
+
+networks:
+  lsio:
+    external: true
