@@ -74,6 +74,7 @@ Workflow-Erfolg prüfen, bevor das neue Image eingesetzt wird.
 {
   "public_url": "https://search.example.com",
   "default_search": "https://www.google.com/search?q={query}",
+  "bangs_without_exclamation": false,
   "bangs": {
     "g": "https://www.google.com/search?q={query}",
     "gh": "https://github.com/search?q={query}",
@@ -95,6 +96,8 @@ Workflow-Erfolg prüfen, bevor das neue Image eingesetzt wird.
 | `!gh` | GitHub-Such-URL mit leerem Suchparameter |
 
 Bangs sind durch Leerraum getrennte Wörter, einschließlich Unicode-Leerraum. Der erste bekannte Bang gewinnt. Der übrige Text bleibt erhalten; nach Bang-Entfernung wird Leerraum an den Rändern entfernt. Leere Suchanfragen, fehlerhafte URL-Kodierung und mehrfache `q`-Parameter ergeben HTTP 400. Ungültige Konfiguration verhindert den Start mit einer Meldung ohne Konfigurationswerte.
+
+Mit `"bangs_without_exclamation": true` werden konfigurierte Kürzel auch ohne `!` erkannt: `gh linux`, `linux gh` und `hello gh world` verwenden die GitHub-Suche. Die Schreibweise `!gh` funktioniert weiterhin. Auch bei gemischten Schreibweisen gewinnt das erste bekannte Kürzel. Damit werden normale Wörter, die einem konfigurierten Kürzel entsprechen, ebenfalls als Bang behandelt. Bei `false` oder weggelassener Option bleibt `!` erforderlich.
 
 ## Browser einrichten
 

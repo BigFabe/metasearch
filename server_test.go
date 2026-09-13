@@ -47,6 +47,51 @@ func TestResolve(t *testing.T) {
 	}
 }
 
+func TestBangsWithoutExclamation(t *testing.T) {
+	for _, enabled := range []bool{false, true} {
+		c := testConfig()
+		c.BangsWithoutExclamation = enabled
+		h := newHandler(c, log.New(io.Discard, "", 0))
+		for _, tc := range []struct{ query, target, value string }{
+			{"gh linux", "gh", "linux"},
+			{"linux gh", "gh", "linux"},
+			{"hello gh world", "gh", "hello  world"},
+			{"gh", "gh", ""},
+			{"\tgh\u2003Grüße 日本語 &#+%\n", "gh", "Grüße 日本語 &#+%"},
+			{"w gh linux", "w", "gh linux"},
+			{"gh !w linux", "gh", "!w linux"},
+			{"!w gh linux", "w", "gh linux"},
+			{"!gh linux", "gh", "linux"},
+			{"unknown linux", "", "unknown linux"},
+			{"GH linux", "", "GH linux"},
+			{"hello!gh linux", "", "hello!gh linux"},
+			{"gh, linux", "", "gh, linux"},
+			{"!!gh linux", "", "!!gh linux"},
+		} {
+			want := expand(c.DefaultSearch, tc.value)
+			if tc.target != "" {
+				want = expand(c.Bangs[tc.target], tc.value)
+			}
+			if !enabled {
+				want = expand(c.DefaultSearch, tc.query)
+				switch tc.query {
+				case "gh !w linux":
+					want = expand(c.Bangs["w"], "gh  linux")
+				case "!w gh linux":
+					want = expand(c.Bangs["w"], "gh linux")
+				case "!gh linux":
+					want = expand(c.Bangs["gh"], "linux")
+				}
+			}
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, httptest.NewRequest("GET", "/search?q="+url.QueryEscape(tc.query), nil))
+			if w.Code != http.StatusFound || w.Header().Get("Location") != want {
+				t.Errorf("enabled=%t query=%q: status=%d location=%q, want %q", enabled, tc.query, w.Code, w.Header().Get("Location"), want)
+			}
+		}
+	}
+}
+
 func TestHTTP(t *testing.T) {
 	var logs bytes.Buffer
 	h := newHandler(testConfig(), log.New(&logs, "", 0))

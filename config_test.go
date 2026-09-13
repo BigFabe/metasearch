@@ -71,3 +71,19 @@ func TestConfigLimitsAndPrivateErrors(t *testing.T) {
 		}
 	}
 }
+
+func TestBangsWithoutExclamationConfig(t *testing.T) {
+	for _, value := range []string{"true", "false", ""} {
+		raw := `{"public_url":"https://search.example.com","default_search":"https://www.google.com/search?q={query}"`
+		if value != "" {
+			raw += `,"bangs_without_exclamation":` + value
+		}
+		c, err := decodeConfig(strings.NewReader(raw + "}"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if c.BangsWithoutExclamation != (value == "true") {
+			t.Fatalf("unexpected option value for %q", value)
+		}
+	}
+}

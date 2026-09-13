@@ -12,9 +12,10 @@ import (
 const placeholder = "{query}"
 
 type config struct {
-	PublicURL     string            `json:"public_url"`
-	DefaultSearch string            `json:"default_search"`
-	Bangs         map[string]string `json:"bangs"`
+	PublicURL               string            `json:"public_url"`
+	DefaultSearch           string            `json:"default_search"`
+	BangsWithoutExclamation bool              `json:"bangs_without_exclamation"`
+	Bangs                   map[string]string `json:"bangs"`
 }
 
 func loadConfig(path string) (config, error) {

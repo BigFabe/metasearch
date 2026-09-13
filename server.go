@@ -35,10 +35,12 @@ func (c config) resolve(query string) string {
 }
 
 func (c config) bang(word string) (string, bool) {
-	if !strings.HasPrefix(word, "!") {
+	if strings.HasPrefix(word, "!") {
+		word = word[1:]
+	} else if !c.BangsWithoutExclamation {
 		return "", false
 	}
-	target, ok := c.Bangs[word[1:]]
+	target, ok := c.Bangs[word]
 	return target, ok
 }
 
