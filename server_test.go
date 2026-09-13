@@ -47,6 +47,14 @@ func TestResolve(t *testing.T) {
 	}
 }
 
+func TestExpandPathTemplate(t *testing.T) {
+	got := expand("https://example.com/search/{query}?source=fixed&q={query}", "Grüße &/+#%")
+	want := "https://example.com/search/Gr%C3%BC%C3%9Fe%20&%2F+%23%25?source=fixed&q=Gr%C3%BC%C3%9Fe+%26%2F%2B%23%25"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
 func TestBangsWithoutExclamation(t *testing.T) {
 	for _, enabled := range []bool{false, true} {
 		c := testConfig()

@@ -47,7 +47,7 @@ func decodeConfig(r io.Reader) (config, error) {
 	}
 	c.PublicURL = strings.TrimSuffix(c.PublicURL, "/")
 	if !validTemplate(c.DefaultSearch) {
-		return c, errors.New("default_search must be an HTTP(S) URL with {query} only in a query parameter value")
+		return c, errors.New("default_search must be an HTTP(S) URL with {query} only in the path or a query parameter value")
 	}
 	for bang, target := range c.Bangs {
 		if bang == "" || strings.IndexFunc(bang, func(r rune) bool {
@@ -56,7 +56,7 @@ func decodeConfig(r io.Reader) (config, error) {
 			return c, errors.New("bang keys must contain only ASCII letters, digits, underscores or hyphens, without !")
 		}
 		if !validTemplate(target) {
-			return c, errors.New("bang targets must be HTTP(S) URLs with {query} only in a query parameter value")
+			return c, errors.New("bang targets must be HTTP(S) URLs with {query} only in the path or a query parameter value")
 		}
 	}
 	return c, nil
@@ -74,9 +74,10 @@ func validTemplate(s string) bool {
 	if err != nil || !absoluteHTTP(u) {
 		return false
 	}
-	// Count literal placeholders only in parameter values, never in the URL authority,
-	// path, fragment or parameter names. Escaped placeholders are not supported.
-	n := 0
+	// Count literal placeholders only in the path or parameter values, never in
+	// the URL authority, fragment or parameter names. Escaped placeholders are
+	// not supported.
+	n := strings.Count(u.Path, placeholder)
 	if _, err := url.ParseQuery(u.RawQuery); err != nil {
 		return false
 	}

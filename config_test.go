@@ -21,10 +21,9 @@ func TestConfig(t *testing.T) {
 		{"no placeholder", func(c *config) { c.DefaultSearch = "https://google.com/" }},
 		{"relative", func(c *config) { c.DefaultSearch = "/search?q={query}" }},
 		{"unsafe scheme", func(c *config) { c.DefaultSearch = "javascript:alert({query})" }},
-		{"path placeholder", func(c *config) { c.DefaultSearch = "https://example.com/{query}?q=hello" }},
+		{"authority placeholder", func(c *config) { c.DefaultSearch = "https://{query}.example.com/?q=hello" }},
 		{"fragment placeholder", func(c *config) { c.DefaultSearch = "https://example.com/?q=x#{query}" }},
 		{"key placeholder", func(c *config) { c.DefaultSearch = "https://example.com/?{query}=x" }},
-		{"extra placeholder", func(c *config) { c.DefaultSearch = "https://example.com/{query}?q={query}" }},
 		{"invalid escape", func(c *config) { c.DefaultSearch = "https://example.com/?q={query}&x=%zz" }},
 		{"newline", func(c *config) { c.DefaultSearch = "https://example.com/?q={query}\n" }},
 		{"invalid bang", func(c *config) { c.Bangs = map[string]string{"!gh": "https://example.com/?q={query}"} }},
@@ -85,5 +84,14 @@ func TestBangsWithoutExclamationConfig(t *testing.T) {
 		if c.BangsWithoutExclamation != (value == "true") {
 			t.Fatalf("unexpected option value for %q", value)
 		}
+	}
+}
+
+func TestPathTemplateConfig(t *testing.T) {
+	c := testConfig()
+	c.Bangs["chrome"] = "https://chromewebstore.google.com/search/{query}"
+	raw, _ := json.Marshal(c)
+	if _, err := decodeConfig(strings.NewReader(string(raw))); err != nil {
+		t.Fatal(err)
 	}
 }

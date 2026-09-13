@@ -45,7 +45,12 @@ func (c config) bang(word string) (string, bool) {
 }
 
 func expand(template, query string) string {
-	return strings.ReplaceAll(template, placeholder, url.QueryEscape(query))
+	path, rawQuery, hasQuery := strings.Cut(template, "?")
+	path = strings.ReplaceAll(path, placeholder, url.PathEscape(query))
+	if !hasQuery {
+		return path
+	}
+	return path + "?" + strings.ReplaceAll(rawQuery, placeholder, url.QueryEscape(query))
 }
 
 type openSearch struct {

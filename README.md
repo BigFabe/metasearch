@@ -83,7 +83,7 @@ Workflow-Erfolg prüfen, bevor das neue Image eingesetzt wird.
 }
 ```
 
-`default_search` legt die Standardsuche fest. Jeder Eintrag in `bangs` verbindet ein Kürzel ohne `!` mit einer absoluten HTTP(S)-URL. `{query}` muss wörtlich in einem Query-Parameterwert stehen; es wird durch den URL-kodierten Suchtext ersetzt. Zusätzliche feste Parameter sind möglich. Kürzel erlauben ASCII-Buchstaben, Ziffern, `_` und `-` und unterscheiden Groß- und Kleinschreibung. Eine leere oder weggelassene Bang-Zuordnung ist erlaubt.
+`default_search` legt die Standardsuche fest. Jeder Eintrag in `bangs` verbindet ein Kürzel ohne `!` mit einer absoluten HTTP(S)-URL. `{query}` muss wörtlich im URL-Pfad oder in einem Query-Parameterwert stehen; es wird passend für die jeweilige Stelle URL-kodiert. Zusätzliche feste Parameter sind möglich. Kürzel erlauben ASCII-Buchstaben, Ziffern, `_` und `-` und unterscheiden Groß- und Kleinschreibung. Eine leere oder weggelassene Bang-Zuordnung ist erlaubt.
 
 | Eingabe | Verhalten |
 | --- | --- |
