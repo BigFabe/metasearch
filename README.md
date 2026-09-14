@@ -74,7 +74,7 @@ Workflow-Erfolg prüfen, bevor das neue Image eingesetzt wird.
 {
   "public_url": "https://search.example.com",
   "default_search": "https://www.google.com/search?q={query}",
-  "bangs_without_exclamation": false,
+  "bang_mode": "required",
   "bangs": {
     "g": "https://www.google.com/search?q={query}",
     "gh": "https://github.com/search?q={query}",
@@ -98,6 +98,18 @@ Workflow-Erfolg prüfen, bevor das neue Image eingesetzt wird.
 Bangs sind durch Leerraum getrennte Wörter, einschließlich Unicode-Leerraum. Der erste bekannte Bang gewinnt. Der übrige Text bleibt erhalten; nach Bang-Entfernung wird Leerraum an den Rändern entfernt. Leere Suchanfragen, fehlerhafte URL-Kodierung und mehrfache `q`-Parameter ergeben HTTP 400. Ungültige Konfiguration verhindert den Start mit einer Meldung ohne Konfigurationswerte.
 
 Mit `"bangs_without_exclamation": true` werden konfigurierte Kürzel auch ohne `!` erkannt: `gh linux`, `linux gh` und `hello gh world` verwenden die GitHub-Suche. Die Schreibweise `!gh` funktioniert weiterhin. Auch bei gemischten Schreibweisen gewinnt das erste bekannte Kürzel. Damit werden normale Wörter, die einem konfigurierten Kürzel entsprechen, ebenfalls als Bang behandelt. Bei `false` oder weggelassener Option bleibt `!` erforderlich.
+
+Mit `bang_mode` lässt sich zwischen drei Modi wählen:
+
+| `bang_mode` | `test ebay` | `test !ebay` |
+| --- | --- | --- |
+| `required` | Standardsuche nach `test ebay` | eBay-Suche nach `test` |
+| `optional` | eBay-Suche nach `test` | eBay-Suche nach `test` |
+| `inverted` | eBay-Suche nach `test` | Standardsuche nach `test ebay` |
+
+Die Beispiele setzen ein konfiguriertes Kürzel `ebay` voraus. Im Modus `inverted` erzwingt ein bekanntes Kürzel mit vorangestelltem `!` überall in der Eingabe die Standardsuche für den gesamten Text, auch wenn davor ein anderes Kürzel steht: `gh test !ebay` sucht nach `gh test ebay`. Alle solchen `!` werden entfernt; Wörter und Leerraum bleiben erhalten. Unbekannte Kürzel, Groß-/Kleinschreibungsabweichungen und eingebettete Ausrufezeichen bleiben normaler Suchtext (`!unbekannt`, `!EBAY`, `test!ebay`).
+
+Ein gesetztes `bang_mode` hat Vorrang vor `bangs_without_exclamation`. Ohne `bang_mode` bleibt die bisherige Einstellung gültig (`false`/weggelassen entspricht `required`, `true` entspricht `optional`). Zum Aktivieren des dritten Modus `"bang_mode": "inverted"` setzen und den Dienst mit der neuen Version neu starten.
 
 ## Browser einrichten
 

@@ -15,6 +15,7 @@ type config struct {
 	PublicURL               string            `json:"public_url"`
 	DefaultSearch           string            `json:"default_search"`
 	BangsWithoutExclamation bool              `json:"bangs_without_exclamation"`
+	BangMode                string            `json:"bang_mode,omitempty"`
 	Bangs                   map[string]string `json:"bangs"`
 }
 
@@ -40,6 +41,11 @@ func decodeConfig(r io.Reader) (config, error) {
 	}
 	if limited.N == 0 {
 		return c, errors.New("configuration must not exceed 1 MiB")
+	}
+	switch c.BangMode {
+	case "", "required", "optional", "inverted":
+	default:
+		return c, errors.New("bang_mode must be required, optional or inverted")
 	}
 	u, err := url.Parse(c.PublicURL)
 	if err != nil || !absoluteHTTP(u) || u.RawQuery != "" || u.ForceQuery || strings.Contains(c.PublicURL, "#") || (u.Path != "" && u.Path != "/") {

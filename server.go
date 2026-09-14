@@ -12,6 +12,11 @@ import (
 )
 
 func (c config) resolve(query string) string {
+	if c.bangMode() == "inverted" {
+		if literal, ok := c.defaultQuery(query); ok {
+			return expand(c.DefaultSearch, literal)
+		}
+	}
 	target := c.DefaultSearch
 	start := -1
 	for i, r := range query {
@@ -36,12 +41,49 @@ func (c config) resolve(query string) string {
 
 func (c config) bang(word string) (string, bool) {
 	if strings.HasPrefix(word, "!") {
+		if c.bangMode() == "inverted" {
+			return "", false
+		}
 		word = word[1:]
-	} else if !c.BangsWithoutExclamation {
+	} else if c.bangMode() == "required" {
 		return "", false
 	}
 	target, ok := c.Bangs[word]
 	return target, ok
+}
+
+func (c config) bangMode() string {
+	if c.BangMode != "" {
+		return c.BangMode
+	}
+	if c.BangsWithoutExclamation {
+		return "optional"
+	}
+	return "required"
+}
+
+// An escaped known shortcut anywhere overrides every routing shortcut. Keep
+// the full query, including whitespace, removing only the escape prefixes.
+func (c config) defaultQuery(query string) (string, bool) {
+	var result strings.Builder
+	position, copied := 0, 0
+	for _, word := range strings.Fields(query) {
+		start := position + strings.Index(query[position:], word)
+		position = start + len(word)
+		if !strings.HasPrefix(word, "!") {
+			continue
+		}
+		if _, ok := c.Bangs[word[1:]]; !ok {
+			continue
+		}
+		result.WriteString(query[copied:start])
+		copied = start + 1
+	}
+	if copied == 0 {
+		return "", false
+	}
+	result.WriteString(query[copied:])
+	return result.String(), true
 }
 
 func expand(template, query string) string {

@@ -100,6 +100,44 @@ func TestBangsWithoutExclamation(t *testing.T) {
 	}
 }
 
+func TestInvertedBangs(t *testing.T) {
+	c := testConfig()
+	c.BangMode = "inverted"
+	c.Bangs["ebay"] = "https://www.ebay.de/sch/i.html?_nkw={query}"
+	h := newHandler(c, log.New(io.Discard, "", 0))
+	for _, tc := range []struct{ query, host, key, value string }{
+		{"test !ebay", "www.google.com", "q", "test ebay"},
+		{"!ebay test", "www.google.com", "q", "ebay test"},
+		{"test ebay", "www.ebay.de", "_nkw", "test"},
+		{"ebay test", "www.ebay.de", "_nkw", "test"},
+		{"!ebay", "www.google.com", "q", "ebay"},
+		{"gh test !ebay", "www.google.com", "q", "gh test ebay"},
+		{"!ebay test gh", "www.google.com", "q", "ebay test gh"},
+		{"!gh test !ebay !gh", "www.google.com", "q", "gh test ebay gh"},
+		{"gh test ebay", "github.com", "q", "test ebay"},
+		{"test !unknown", "www.google.com", "q", "test !unknown"},
+		{"gh !unknown", "github.com", "q", "!unknown"},
+		{"test !EBAY", "www.google.com", "q", "test !EBAY"},
+		{"test!ebay", "www.google.com", "q", "test!ebay"},
+		{"test !ebay,", "www.google.com", "q", "test !ebay,"},
+		{"test !!ebay !", "www.google.com", "q", "test !!ebay !"},
+		{"  !ebay\tGrüße\u2003!gh 日本語 &#+%\n", "www.google.com", "q", "  ebay\tGrüße\u2003gh 日本語 &#+%\n"},
+		{"normal  text", "www.google.com", "q", "normal  text"},
+	} {
+		t.Run(tc.query, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, httptest.NewRequest("GET", "/search?q="+url.QueryEscape(tc.query), nil))
+			u, err := url.Parse(w.Header().Get("Location"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if w.Code != http.StatusFound || u.Host != tc.host || u.Query().Get(tc.key) != tc.value || len(u.Query()) != 1 || u.Fragment != "" {
+				t.Fatalf("status=%d location=%s, want host=%s %s=%q", w.Code, u, tc.host, tc.key, tc.value)
+			}
+		})
+	}
+}
+
 func TestHTTP(t *testing.T) {
 	var logs bytes.Buffer
 	h := newHandler(testConfig(), log.New(&logs, "", 0))

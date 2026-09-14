@@ -15,6 +15,7 @@ func TestConfig(t *testing.T) {
 		change func(*config)
 	}{
 		{"missing origin", func(c *config) { c.PublicURL = "" }},
+		{"invalid bang mode", func(c *config) { c.BangMode = "unknown" }},
 		{"origin path", func(c *config) { c.PublicURL = "https://example.com/path" }},
 		{"origin credentials", func(c *config) { c.PublicURL = "https://user:secret@example.com" }},
 		{"origin query", func(c *config) { c.PublicURL = "https://example.com/?secret=x" }},
@@ -93,5 +94,32 @@ func TestPathTemplateConfig(t *testing.T) {
 	raw, _ := json.Marshal(c)
 	if _, err := decodeConfig(strings.NewReader(string(raw))); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestBangModeConfig(t *testing.T) {
+	for _, mode := range []string{"", "required", "optional", "inverted"} {
+		for _, legacy := range []bool{false, true} {
+			c := testConfig()
+			c.BangMode, c.BangsWithoutExclamation = mode, legacy
+			raw, err := json.Marshal(c)
+			if err != nil {
+				t.Fatal(err)
+			}
+			parsed, err := decodeConfig(strings.NewReader(string(raw)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := mode
+			if want == "" {
+				want = "required"
+				if legacy {
+					want = "optional"
+				}
+			}
+			if parsed.bangMode() != want {
+				t.Fatalf("mode=%q legacy=%t: got %q, want %q", mode, legacy, parsed.bangMode(), want)
+			}
+		}
 	}
 }
